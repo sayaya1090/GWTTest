@@ -44,7 +44,7 @@ tasks {
 
 tasks {
     register<GwtSuperDev>("gwtDevTest") {
-        modules = listOf("net.sayaya.blah.Test")
+        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
         launcherDir = file("build/resources/test/static")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
         port = 8081

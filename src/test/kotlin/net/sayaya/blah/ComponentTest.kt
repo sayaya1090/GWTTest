@@ -1,6 +1,5 @@
 package net.sayaya.blah
 
-import io.kotest.core.annotation.AutoScan
 import io.kotest.matchers.shouldBe
 import org.openqa.selenium.By
 
