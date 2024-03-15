@@ -1,0 +1,52 @@
+name: UI Component Test
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+      - name: Test
+        run: gradle test
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ always() }}
+        with:
+          files: build/test-results/**/*.xml
+      - name: Build
+        run: gradle build -x test
+      - name: Unpack
+        run: |
+          unzip -o build/libs/*.war "**/*.js" "**/*.css" "*.html" -d static
+      - name: Gzip Compression
+        run: |
+          gzip_and_move() {
+            find static -type f -name "*.$1" -exec sh -c 'gzip -9 "{}" && mv "{}.gz" "{}"' \;
+          }  
+          gzip_and_move css
+          gzip_and_move js
+          gzip_and_move html
+#      - name: Deploy
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          AWS_DEFAULT_REGION: null
+#          S3_BUCKET_RELEASE: ${{ secrets.AWS_BUCKET_RELEASE }}
+#          S3_BUCKET_CANDIDATE: ${{ secrets.AWS_BUCKET_CANDIDATE }}
+#          S3_ENDPOINT: ${{ secrets.AWS_ENDPOINT}}
+#          DESTINATION: static
+#        run: |
+#          if [ "$GITHUB_REF_NAME" = "deploy" ]; then BUCKET=$S3_BUCKET_RELEASE
+#          else BUCKET=$S3_BUCKET_CANDIDATE
+#          fi
+#          aws s3 sync --endpoint-url $S3_ENDPOINT static s3://$BUCKET/$DESTINATION --acl public-read --content-encoding gzip
