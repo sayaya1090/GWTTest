@@ -1,11 +1,10 @@
-import org.gradle.internal.UncheckedException
-import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
-import kotlin.concurrent.thread
-
 plugins {
     kotlin("jvm") version "1.9.23"
-    id("org.wisepersist.gwt") version "1.1.19"
+    id("org.wisepersist.gwt")
     id("war")
+}
+apply {
+    plugin("net.sayaya.gwt")
 }
 repositories {
     mavenCentral()
@@ -40,27 +39,52 @@ tasks {
         codeServerPort = 8081
         war = file("src/main/resources/static")
     }
-}
-
-tasks {
-    register<GwtSuperDev>("gwtDevTest") {
+    /*gwtTest {
         modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
         launcherDir = file("build/resources/test/static")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
         port = 8081
         src += files(File("src/test/java"))
+    }*/
+}
+/*
+//lateinit var codeserver: Thread
+abstract class GwtTest: GwtSuperDev() {
+    @get:Input
+    abstract var webServerPort: Int
+    @Internal lateinit var codeserver: Thread
+    @Internal lateinit var webserver: ApplicationEngine
+    @TaskAction
+    override fun exec() {
+        codeserver = thread(start = false) { try { super.exec() } catch(ignore: UncheckedException) { ignore.printStackTrace() } }
+        webserver = embeddedServer(Netty, 9920) { routing { staticResources("/", "static") } }.start(wait = true)
     }
-    val gwtTask = thread(start = false) { try {
-        withType(GwtSuperDev::class.java).named("gwtDevTest").get().exec()
-    } catch(ignore: UncheckedException) { } }
-    test {
+    init {
+        this.doLast {
+            codeserver.interrupt()
+            webserver.stop()
+        }
+    }
+}*/
+tasks {
+    /*gwtTest {
+        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
+        launcherDir = file("build/resources/test/static")
+        extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
+        port = 8081
+        src += files(File("src/test/java"))
+        //webServerPort = 9929
+    }*/
+    /*test {
         useJUnitPlatform()
-        doFirst { gwtTask.start() }
+        val gwtDevTest = withType(gwtTest::class.java).getByName("gwtDevTest")
+        //dependsOn(gwtDevTest)
+        doFirst { gwtDevTest.exec() }
         finalizedBy("CloseGwtCodeServer")
     }
     register("CloseGwtCodeServer") {
         doLast {
-            gwtTask.interrupt()
+           // codeserver.interrupt()
         }
-    }
+    }*/
 }
