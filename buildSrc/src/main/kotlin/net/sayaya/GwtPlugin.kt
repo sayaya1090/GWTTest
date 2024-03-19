@@ -1,35 +1,50 @@
 package net.sayaya
 
+import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
+import io.ktor.server.netty.*
+import io.ktor.server.routing.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.wisepersist.gradle.plugins.gwt.GwtPluginExtension
+import org.gradle.api.tasks.testing.Test
+import org.gradle.internal.UncheckedException
+import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
+import kotlin.concurrent.thread
 
 class GwtPlugin: Plugin<Project> {
-    private lateinit var extension: GwtPluginExtension
     override fun apply(project: Project) {
-        extension = project.extensions.create("gwt", GwtPluginExtension::class.java);
         project.plugins.apply("org.wisepersist.gwt")
-        project.dependencies.add("implementation", "io.ktor:ktor-server-core:2.3.9")
-        project.dependencies.add("implementation", "io.ktor:ktor-server-netty:2.3.9")
-
-        project.tasks.register(GwtTest.NAME, GwtTest::class.java) {
-            description = "Runs the GWT Test mode"
-            //(this as IConventionAware).conventionMapping.map("war", (Callable<File>) extension::getDevWar);
-            //dependsOn(project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME));
-            //dependsOn(project.getTasks().named(TASK_WAR_TEMPLATE));
+        val webserverTask = thread(start = false) { try {
+            println("CCC")
+            embeddedServer(Netty, 8080) { routing { staticResources("/", "static") } }.start(wait = true)
+        } catch(ignore: UncheckedException) { } }
+        project.tasks.register("openWebServer") {
+            doFirst { webserverTask.start() }
+            /*val url = URI.create("http://localhost:8080")
+            val conn = url.toURL().openConnection()
+            conn.connect()
+            */
         }
-        project.tasks.withType(GwtTest::class.java).configureEach {
-            println("~~")
-            this.configure(extension.superDev)
+        project.tasks.register("closeWebServer") {
+            webserverTask.interrupt()
+        }
+        val gwtCodeServer = project.tasks.register("gwtTest", GwtSuperDev::class.java) {
+            group = "gwt"
+            dependsOn("processResources", "openWebServer")
+            finalizedBy("closeWebServer")
+        }
+        val gwtCodeServerThread = thread(start = false) { try {
+            gwtCodeServer.get().exec()
+        } catch(ignore: UncheckedException) { } }
+
+        project.tasks.register("closeGwtCodeServer") {
+            gwtCodeServerThread.interrupt()
+        }
+        project.tasks.withType(Test::class.java).configureEach {
+            useJUnitPlatform()
+            dependsOn("processResources", "openWebServer")
+            doFirst { gwtCodeServerThread.start() }
+            finalizedBy("closeWebServer", "closeGwtCodeServer")
         }
     }
 }
-/*
- project.getTasks().register(TASK_GWT_DEV, GwtDev.class, task -> {
-      task.setDescription("Runs the GWT development mode");
-      ((IConventionAware) task).getConventionMapping()
-              .map("war", (Callable<File>) extension::getDevWar);
-      task.dependsOn(project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME));
-      task.dependsOn(project.getTasks().named(TASK_WAR_TEMPLATE));
-    });
- */

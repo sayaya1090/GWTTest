@@ -1,10 +1,9 @@
+import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
+
 plugins {
     kotlin("jvm") version "1.9.23"
-    id("org.wisepersist.gwt")
+    id("net.sayaya.gwt")
     id("war")
-}
-apply {
-    plugin("net.sayaya.gwt")
 }
 repositories {
     mavenCentral()
@@ -17,8 +16,6 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testImplementation("io.kotest:kotest-runner-junit5:5.8.1")
-    testImplementation("io.ktor:ktor-server-core:2.3.9")
-    testImplementation("io.ktor:ktor-server-netty:2.3.9")
     testImplementation("org.seleniumhq.selenium:selenium-java:4.18.1")
     testImplementation("org.slf4j:slf4j-simple:2.0.12")
 }
@@ -34,38 +31,44 @@ tasks {
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
     }
     gwtDev {
+        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
         port = 8080
         codeServerPort = 8081
         war = file("src/main/resources/static")
     }
-    /*gwtTest {
+    gwtTest {
         modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
         launcherDir = file("build/resources/test/static")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
         port = 8081
         src += files(File("src/test/java"))
-    }*/
+    }
 }
 /*
-//lateinit var codeserver: Thread
-abstract class GwtTest: GwtSuperDev() {
-    @get:Input
-    abstract var webServerPort: Int
-    @Internal lateinit var codeserver: Thread
-    @Internal lateinit var webserver: ApplicationEngine
-    @TaskAction
-    override fun exec() {
-        codeserver = thread(start = false) { try { super.exec() } catch(ignore: UncheckedException) { ignore.printStackTrace() } }
-        webserver = embeddedServer(Netty, 9920) { routing { staticResources("/", "static") } }.start(wait = true)
+tasks {
+    register<GwtSuperDev>("gwtDevTest") {
+        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
+        launcherDir = file("build/resources/test/static")
+        extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
+        port = 8081
+        src += files(File("src/test/java"))
     }
-    init {
-        this.doLast {
-            codeserver.interrupt()
-            webserver.stop()
+    val gwtTask = thread(start = false) { try {
+        withType(GwtSuperDev::class.java).named("gwtDevTest").get().exec()
+    } catch(ignore: UncheckedException) { } }
+    test {
+        useJUnitPlatform()
+        doFirst { gwtTask.start() }
+        finalizedBy("CloseGwtCodeServer")
+    }
+    register("CloseGwtCodeServer") {
+        doLast {
+            gwtTask.interrupt()
         }
     }
-}*/
+}
+ */
 tasks {
     /*gwtTest {
         modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
