@@ -31,7 +31,7 @@ tasks {
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
     }
     gwtDev {
-        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
+        modules = listOf("net.sayaya.blah.Index")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
         port = 8080
         codeServerPort = 8081
@@ -41,53 +41,8 @@ tasks {
         modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
         launcherDir = file("build/resources/test/static")
         extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
+        webserverPort = 8080
         port = 8081
         src += files(File("src/test/java"))
     }
-}
-/*
-tasks {
-    register<GwtSuperDev>("gwtDevTest") {
-        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
-        launcherDir = file("build/resources/test/static")
-        extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
-        port = 8081
-        src += files(File("src/test/java"))
-    }
-    val gwtTask = thread(start = false) { try {
-        withType(GwtSuperDev::class.java).named("gwtDevTest").get().exec()
-    } catch(ignore: UncheckedException) { } }
-    test {
-        useJUnitPlatform()
-        doFirst { gwtTask.start() }
-        finalizedBy("CloseGwtCodeServer")
-    }
-    register("CloseGwtCodeServer") {
-        doLast {
-            gwtTask.interrupt()
-        }
-    }
-}
- */
-tasks {
-    /*gwtTest {
-        modules = listOf("net.sayaya.blah.Test", "net.sayaya.blah.Index")
-        launcherDir = file("build/resources/test/static")
-        extraJvmArgs = listOf("-javaagent:${lombok}=ECJ")
-        port = 8081
-        src += files(File("src/test/java"))
-        //webServerPort = 9929
-    }*/
-    /*test {
-        useJUnitPlatform()
-        val gwtDevTest = withType(gwtTest::class.java).getByName("gwtDevTest")
-        //dependsOn(gwtDevTest)
-        doFirst { gwtDevTest.exec() }
-        finalizedBy("CloseGwtCodeServer")
-    }
-    register("CloseGwtCodeServer") {
-        doLast {
-           // codeserver.interrupt()
-        }
-    }*/
 }

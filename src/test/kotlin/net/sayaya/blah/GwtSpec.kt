@@ -8,16 +8,12 @@ import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 abstract class GwtSpec (body: BehaviorSpec.() -> Unit = {}) : BehaviorSpec(body) {
     companion object {
-
         private suspend fun waitUntil(until: kotlin.time.Duration, delay: kotlin.time.Duration = 0.5.seconds, predicate: () -> Boolean): Unit = until(until) {
-            val result = try { predicate() } catch (exception: Exception) {
-                println("CC")
-                false }
+            val result = try { predicate() } catch (exception: Exception) { false }
             if(result.not()) delay(delay.inWholeMilliseconds)
             result
         }
@@ -25,12 +21,8 @@ abstract class GwtSpec (body: BehaviorSpec.() -> Unit = {}) : BehaviorSpec(body)
         fun BehaviorSpec.Connect(name: String = "Connection", url: String, test: suspend BehaviorSpecGivenContainerScope.(ChromeDriver) -> Unit) {
             Given(name) {
                 val document = ChromeDriver(ChromeOptions().addArguments("--headless"))
-                waitUntil(10.seconds) { document.get("http://127.0.0.1:8081/");
-                    println("@@")
-                    true }  // Wait until the GWT application is ready
                 document.get("http://127.0.0.1:8080/$url")
-                waitUntil(10.seconds) {
-                    println("dd")// Wait until the GWT application is ready
+                waitUntil(10.seconds) {                                                         // Wait until the GWT webserver is ready
                     var body: WebElement? = null
                     try { body = document.findElement(By.tagName("body")) } catch(ignore: NoSuchElementException) { }
                     body!=null && body.text.startsWith("Compiling").not() && body.text.isNotBlank()
