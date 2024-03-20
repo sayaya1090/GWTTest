@@ -1,11 +1,17 @@
-import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
-
 plugins {
     kotlin("jvm") version "1.9.23"
-    id("net.sayaya.gwt")
+    id("net.sayaya.gwt") version "1.1.19"
     id("war")
 }
 repositories {
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/sayaya1090/maven")
+        credentials {
+            username = project.findProperty("github_username") as String
+            password = project.findProperty("github_password") as String
+        }
+    }
     mavenCentral()
 }
 
@@ -15,6 +21,7 @@ dependencies {
     implementation("org.jboss.elemento:elemento-core:1.4.0")
     implementation("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
+    testImplementation("net.sayaya:gwt-test:1.0")
     testImplementation("io.kotest:kotest-runner-junit5:5.8.1")
     testImplementation("org.seleniumhq.selenium:selenium-java:4.18.1")
     testImplementation("org.slf4j:slf4j-simple:2.0.12")

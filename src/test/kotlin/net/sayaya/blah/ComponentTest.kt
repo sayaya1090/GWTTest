@@ -1,6 +1,7 @@
 package net.sayaya.blah
 
 import io.kotest.matchers.shouldBe
+import net.sayaya.gwt.test.GwtSpec
 import org.openqa.selenium.By
 
 class ComponentTest :GwtSpec({

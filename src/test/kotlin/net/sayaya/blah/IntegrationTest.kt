@@ -2,9 +2,10 @@ package net.sayaya.blah
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import net.sayaya.gwt.test.GwtSpec
 import org.openqa.selenium.By
 
-class IntegrationTest :GwtSpec({
+class IntegrationTest : GwtSpec({
     Connect(url="Index.html") {document ->
         val body = document.findElement(By.tagName("body"))
         then("The body should contain 'Hello, World! This is Index!'") {
